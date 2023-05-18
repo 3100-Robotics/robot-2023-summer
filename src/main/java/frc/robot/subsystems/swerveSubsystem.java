@@ -13,6 +13,11 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.driveConstants;
+import frc.robot.visionWrapper;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveKinematics2;
@@ -23,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 
@@ -34,7 +40,13 @@ public class swerveSubsystem extends SubsystemBase {
 
    private final PIDController balanceController;
 
-    public swerveSubsystem() {
+   private final visionWrapper frontCamera, backCamera;
+
+    public swerveSubsystem(visionWrapper frontCamera, visionWrapper backCamera) {
+
+        this.frontCamera = frontCamera;
+        this.backCamera = backCamera;
+
         balanceController  = new PIDController(
                 driveConstants.balanceP,
                 driveConstants.balanceI,
@@ -50,7 +62,26 @@ public class swerveSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        updateOdometry();
+    }
+
+
+    public void updateOdometry() {
         drive.updateOdometry();
+
+        Optional<EstimatedRobotPose> frontResult = frontCamera.getEstimatedGlobalPose(drive.getPose());
+        Optional<EstimatedRobotPose> backResult = frontCamera.getEstimatedGlobalPose(drive.getPose());
+
+        if (frontResult.isPresent()) {
+            EstimatedRobotPose camPose = frontResult.get();
+            drive.swerveDrivePoseEstimator.addVisionMeasurement(
+                    camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+        }
+        if (backResult.isPresent()) {
+            EstimatedRobotPose camPose = backResult.get();
+            drive.swerveDrivePoseEstimator.addVisionMeasurement(
+                    camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+        }
     }
 
 

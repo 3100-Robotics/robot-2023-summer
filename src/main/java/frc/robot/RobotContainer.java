@@ -28,10 +28,11 @@ import java.util.HashMap;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
 
-  private final PhotonCamera frontCamera = new PhotonCamera("frontCamera");
-  private final PhotonCamera backCamera = new PhotonCamera("backCamera");
 
-  public final swerveSubsystem drive = new swerveSubsystem();
+  private final visionWrapper frontCamera = new visionWrapper("frontCamera");
+  private final visionWrapper backCamera = new visionWrapper("backCamera");
+
+  public final swerveSubsystem drive = new swerveSubsystem(frontCamera, backCamera);
   public final Shooter shooter = new Shooter(frontCamera, backCamera);
   public final AngleController angleController = new AngleController(frontCamera, backCamera);
   public final LEDs leds = new LEDs();

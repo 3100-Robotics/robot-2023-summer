@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
@@ -33,7 +35,7 @@ public final class Constants {
     public static final int leftShooterPort = 10;
     public static final int rightShooterPort = 11;
 
-    public static final double angleP = 0;
+    public static final double angleP = 0.1;
     public static final double angleI = 0;
     public static final double angleD = 0;
   }
@@ -42,6 +44,13 @@ public final class Constants {
     public static final double maxHeight = 9.5;
     public static final double[] heightDiffs = {19, 29};
     public static final double g = 32;
+
+    public static final Transform3d robotToCam =
+            new Transform3d(
+                    new Translation3d(0.222, 0.238, 0),
+                    new Rotation3d(
+                            60, 0,
+                            0)); // Cam mounted facing forward, half a meter forward of center, half a meter up
   }
 
   public static class LEDConstants {

@@ -11,6 +11,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import frc.robot.Constants;
 import frc.robot.Constants.cuberConstants;
+import frc.robot.visionWrapper;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -26,9 +27,9 @@ public class Shooter extends SubsystemBase {
 
     private final BangBangController shooterController;
 
-    private final PhotonCamera frontCamera, backCamera;
+    private final visionWrapper frontCamera, backCamera;
 
-    public Shooter(PhotonCamera frontCamera, PhotonCamera backCamera) {
+    public Shooter(visionWrapper frontCamera, visionWrapper backCamera) {
         leftShooter = new CANSparkMax(cuberConstants.leftShooterPort, MotorType.kBrushless);
         rightShooter = new CANSparkMax(cuberConstants.rightShooterPort, MotorType.kBrushless);
 
@@ -99,8 +100,8 @@ public class Shooter extends SubsystemBase {
     }
 
     public Command runShooterWithVision(String level) {
-        PhotonPipelineResult frontResults = frontCamera.getLatestResult();
-        PhotonPipelineResult backResults = backCamera.getLatestResult();
+        PhotonPipelineResult frontResults = frontCamera.camera.getLatestResult();
+        PhotonPipelineResult backResults = backCamera.camera.getLatestResult();
 
         PhotonTrackedTarget frontBestTarget;
         PhotonTrackedTarget backBestTarget;

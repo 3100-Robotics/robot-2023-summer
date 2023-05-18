@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.cuberConstants;
+import frc.robot.visionWrapper;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -21,8 +22,8 @@ public class AngleController extends SubsystemBase {
 
     private final PIDController angleController;
 
-    private final PhotonCamera frontCamera, backCamera;
-    public AngleController(PhotonCamera frontCamera, PhotonCamera backCamera) {
+    private final visionWrapper frontCamera, backCamera;
+    public AngleController(visionWrapper frontCamera, visionWrapper backCamera) {
         angleMotor = new CANSparkMax(cuberConstants.angleMotorPort, MotorType.kBrushless);
 
         angleMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
@@ -58,8 +59,8 @@ public class AngleController extends SubsystemBase {
     }
 
     public void setTargetAngleVision(String level) {
-        PhotonPipelineResult frontResults = frontCamera.getLatestResult();
-        PhotonPipelineResult backResults = backCamera.getLatestResult();
+        PhotonPipelineResult frontResults = frontCamera.camera.getLatestResult();
+        PhotonPipelineResult backResults = backCamera.camera.getLatestResult();
 
         PhotonTrackedTarget frontBestTarget;
         PhotonTrackedTarget backBestTarget;
