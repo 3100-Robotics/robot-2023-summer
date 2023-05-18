@@ -9,7 +9,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
+import frc.robot.Constants;
 import frc.robot.Constants.cuberConstants;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Shooter extends SubsystemBase {
 
@@ -22,7 +26,9 @@ public class Shooter extends SubsystemBase {
 
     private final BangBangController shooterController;
 
-    public Shooter() {
+    private final PhotonCamera frontCamera, backCamera;
+
+    public Shooter(PhotonCamera frontCamera, PhotonCamera backCamera) {
         leftShooter = new CANSparkMax(cuberConstants.leftShooterPort, MotorType.kBrushless);
         rightShooter = new CANSparkMax(cuberConstants.rightShooterPort, MotorType.kBrushless);
 
@@ -37,6 +43,9 @@ public class Shooter extends SubsystemBase {
 
         shooterController = new BangBangController();
         shooterController.setTolerance(0.5);
+
+        this.frontCamera = frontCamera;
+        this.backCamera = backCamera;
     }
 
     // ACTIONS
@@ -87,6 +96,47 @@ public class Shooter extends SubsystemBase {
         double startTime = Timer.getFPGATimestamp();
         return this.runOnce(() -> setTargetShooterSpeed(speed)).
                 andThen(this::runShooterToSpeed).until(() -> Timer.getFPGATimestamp() - startTime >= time);
+    }
+
+    public Command runShooterWithVision(String level) {
+        PhotonPipelineResult frontResults = frontCamera.getLatestResult();
+        PhotonPipelineResult backResults = backCamera.getLatestResult();
+
+        PhotonTrackedTarget frontBestTarget;
+        PhotonTrackedTarget backBestTarget;
+
+        double angle;
+
+        double distance = 0;
+
+        int numLevel;
+
+        if (level.equals("mid")) {
+            numLevel = 0;
+        }
+        else {
+            numLevel = 1;
+        }
+
+        if (frontResults.hasTargets()) {
+            frontBestTarget = frontResults.getBestTarget();
+            distance = frontBestTarget.getBestCameraToTarget().getX();
+        }
+        else if (backResults.hasTargets()) {
+            backBestTarget = backResults.getBestTarget();
+            distance = backBestTarget.getBestCameraToTarget().getX();
+        }
+
+        angle = Math.atan(
+                (2/distance) *
+                        (Constants.visionConstants.heightDiffs[numLevel] + Constants.visionConstants.maxHeight +
+                                Math.sqrt(Math.pow(Constants.visionConstants.maxHeight, 2) +
+                                        Constants.visionConstants.heightDiffs[numLevel] *
+                                                Constants.visionConstants.maxHeight)));
+
+        return runShooterSpeedForTime((Math.sqrt(2* Constants.visionConstants.g*
+                (Constants.visionConstants.heightDiffs[numLevel] +
+                        Constants.visionConstants.maxHeight)))/Math.sin(angle), 0.5);
     }
 }
 

@@ -4,15 +4,20 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.XboxController;
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.auto.PIDConstants;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.fieldCentricDrive;
 import frc.robot.subsystems.*;
+import org.photonvision.PhotonCamera;
+
+import java.util.HashMap;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -23,24 +28,64 @@ import frc.robot.subsystems.*;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
 
+  private final PhotonCamera frontCamera = new PhotonCamera("frontCamera");
+  private final PhotonCamera backCamera = new PhotonCamera("backCamera");
+
   public swerveSubsystem drive = new swerveSubsystem();
-  public Shooter shooter = new Shooter();
-  public AngleController angleController = new AngleController();
-  public Vision vision = new Vision();
+  public Shooter shooter = new Shooter(frontCamera, backCamera);
+  public AngleController angleController = new AngleController(frontCamera, backCamera);
   public LEDs leds = new LEDs();
 
   public CommandXboxController driveController = new CommandXboxController(0);
   public CommandXboxController coDriveController = new CommandXboxController(1);
 
+  private final SendableChooser<Command> chooser = new SendableChooser<>();
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     drive.setDefaultCommand(new fieldCentricDrive(drive, driveController::getLeftX, driveController::getLeftY,
-            driveController::getRightX, false));
+            driveController::getRightX, () -> driveController.rightBumper().getAsBoolean(),false));
 
     angleController.setDefaultCommand(angleController.updateAngle());
 
+    shooter.setDefaultCommand(shooter.setShooterWithSpeed(-0.02));
+
+    configureAutonomous();
+
     // Configure the trigger bindings
     configureBindings();
+  }
+
+  private void configureAutonomous() {
+    HashMap<String, Command> eventMap = new HashMap<>();
+    eventMap.put("shootMid", shooter.runShooterWithVision("mid"));
+    eventMap.put("shootHigh", shooter.runShooterWithVision("high"));
+    eventMap.put("collect", angleController.turnToAngle(0).
+            andThen(shooter.runShooterSpeedForTime(-0.5, 1).
+                    andThen(angleController.turnToAngle(120))));
+    eventMap.put("eject", shooter.runShooterSpeedForTime(0.5, 0.5));
+    eventMap.put("balance", new PrintCommand("I should be balancing"));
+
+    Command threePieceBalance = drive.createTrajectory(
+            "3 piece balance",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
+    Command threePiece = drive.createTrajectory(
+            "3 piece",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
+    chooser.setDefaultOption("3 piece balance", threePieceBalance);
+    chooser.addOption("3 piece", threePiece);
+
+    SmartDashboard.putData("autos", chooser);
   }
 
   /**
@@ -54,10 +99,18 @@ public class RobotContainer {
    */
   private void configureBindings() {
     coDriveController.a().onTrue(new InstantCommand(() -> angleController.setTargetAngle(0.0)));
-    coDriveController.b().onTrue(new InstantCommand(() -> angleController.setTargetAngle(135.0)));
-    coDriveController.x().onTrue(new InstantCommand(() -> angleController.setTargetAngleVision(
-            () -> vision.calculateAngle("mid"))));
-    coDriveController.y().onTrue(new InstantCommand(() -> angleController.setTargetAngle(0.0)));
+    coDriveController.b().onTrue(new InstantCommand(() -> angleController.setTargetAngle(120)));
+    coDriveController.x().onTrue(angleController.runOnce(() -> leds.setColorRGB(255, 204, 0)).
+            andThen(angleController.turnToAngleVision("mid")).
+            andThen(() -> leds.setColorRGB(51, 204, 51)).
+            andThen(shooter.runShooterWithVision("mid")));
+    coDriveController.x().onTrue(angleController.runOnce(() -> leds.setColorRGB(255, 204, 0)).
+            andThen(angleController.turnToAngleVision("high")).
+            andThen(() -> leds.setColorRGB(51, 204, 51)).
+            andThen(shooter.runShooterWithVision("high")));
+
+    coDriveController.leftBumper().whileTrue(shooter.setShooterWithSpeed(-0.3));
+    coDriveController.rightBumper().whileTrue(shooter.setShooterWithSpeed(0.3));
   }
 
   /**
@@ -67,6 +120,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return null;
+    return chooser.getSelected();
   }
 }

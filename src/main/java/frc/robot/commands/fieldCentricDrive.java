@@ -10,19 +10,24 @@ import swervelib.SwerveController;
 import swervelib.math.SwerveMath;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 public class fieldCentricDrive extends CommandBase {
     private final swerveSubsystem drive;
     private final DoubleSupplier vX, vY, heading;
+
+    private final BooleanSupplier isSlowMode;
+
     private final Boolean isOpenLoop;
 
     public fieldCentricDrive(swerveSubsystem drive, DoubleSupplier vX, DoubleSupplier vY,
-                             DoubleSupplier heading, boolean isOpenLoop) {
+                             DoubleSupplier heading, BooleanSupplier isSlowMode, boolean isOpenLoop) {
         this.drive = drive;
         this.vX = vX;
         this.vY =vY;
         this.heading = heading;
+        this.isSlowMode = isSlowMode;
         this.isOpenLoop = isOpenLoop;
 
         addRequirements(this.drive);
@@ -30,7 +35,9 @@ public class fieldCentricDrive extends CommandBase {
 
     @Override
     public void execute() {
-        ChassisSpeeds wantedSpeeds = drive.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(),
+        ChassisSpeeds wantedSpeeds = drive.getTargetSpeeds(
+                vX.getAsDouble()*(!isSlowMode.getAsBoolean() ? 0.5 : 1),
+                vY.getAsDouble()*(!isSlowMode.getAsBoolean() ? 0.5 : 1),
                 new Rotation2d(heading.getAsDouble() * Math.PI));
 
         Translation2d translation = SwerveController.getTranslation2d(wantedSpeeds);

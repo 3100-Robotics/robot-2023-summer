@@ -8,9 +8,11 @@ import com.revrobotics.SparkMaxAbsoluteEncoder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.cuberConstants;
-
-import java.util.function.DoubleSupplier;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class AngleController extends SubsystemBase {
     private final CANSparkMax angleMotor;
@@ -18,7 +20,9 @@ public class AngleController extends SubsystemBase {
     private final AbsoluteEncoder angleEncoder;
 
     private final PIDController angleController;
-    public AngleController() {
+
+    private final PhotonCamera frontCamera, backCamera;
+    public AngleController(PhotonCamera frontCamera, PhotonCamera backCamera) {
         angleMotor = new CANSparkMax(cuberConstants.angleMotorPort, MotorType.kBrushless);
 
         angleMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
@@ -31,6 +35,9 @@ public class AngleController extends SubsystemBase {
                 cuberConstants.angleI,
                 cuberConstants.angleD);
         angleController.setTolerance(0.1);
+
+        this.frontCamera = frontCamera;
+        this.backCamera = backCamera;
     }
 
     // ACTIONS
@@ -50,8 +57,36 @@ public class AngleController extends SubsystemBase {
         angleController.setSetpoint(setpointStatic);
     }
 
-    public void setTargetAngleVision(DoubleSupplier setpointDynamic) {
-        setTargetAngle(setpointDynamic.getAsDouble());
+    public void setTargetAngleVision(String level) {
+        PhotonPipelineResult frontResults = frontCamera.getLatestResult();
+        PhotonPipelineResult backResults = backCamera.getLatestResult();
+
+        PhotonTrackedTarget frontBestTarget;
+        PhotonTrackedTarget backBestTarget;
+
+        double distance = 0;
+
+        int numLevel = 1;
+
+        if (level.equals("mid")) {
+            numLevel = 0;
+        }
+
+        if (frontResults.hasTargets()) {
+            frontBestTarget = frontResults.getBestTarget();
+            distance = frontBestTarget.getBestCameraToTarget().getX();
+        }
+        else if (backResults.hasTargets()) {
+            backBestTarget = backResults.getBestTarget();
+            distance = backBestTarget.getBestCameraToTarget().getX();
+        }
+
+        setTargetAngle(Math.atan(
+                (2/distance) *
+                        (Constants.visionConstants.heightDiffs[numLevel] + Constants.visionConstants.maxHeight +
+                                Math.sqrt(Math.pow(Constants.visionConstants.maxHeight, 2) +
+                                        Constants.visionConstants.heightDiffs[numLevel] *
+                                                Constants.visionConstants.maxHeight))));
     }
 
     public void setAngleMotor(double speed) {
@@ -91,6 +126,12 @@ public class AngleController extends SubsystemBase {
     public Command turnToAngle(double angle) {
         return this.
                 runOnce(() -> setTargetAngle(angle)).
+                andThen(run(this::moveToTargetAngle)).until(this::atAngle);
+    }
+
+    public Command turnToAngleVision(String level) {
+        return this.
+                runOnce(() -> setTargetAngleVision(level)).
                 andThen(run(this::moveToTargetAngle)).until(this::atAngle);
     }
 }
