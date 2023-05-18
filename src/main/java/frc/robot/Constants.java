@@ -17,13 +17,16 @@ import swervelib.math.Matter;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
+
+  public static class driveConstants {
+    public static final double balanceP = 0.05;
+    public static final double balanceI = 0;
+    public static final double balanceD = 0;
   }
 
-  public static final double ROBOT_MASS = (148 - 20.3) * 0.453592; // 32lbs * kg per pound
-  public static final Matter CHASSIS    = new Matter(new Translation3d(0, 0, Units.inchesToMeters(4)), ROBOT_MASS);
-  public static final double LOOP_TIME  = 0.13;
+  public static final double ROBOT_MASS = 45.35924; // 32lbs * kg per pound
+  public static final Matter CHASSIS = new Matter(new Translation3d(0, 0, Units.inchesToMeters(4)), ROBOT_MASS);
+  public static final double LOOP_TIME = 0.13;
 
   public static class cuberConstants {
     public static final int angleMotorPort = 9;
@@ -33,10 +36,6 @@ public final class Constants {
     public static final double angleP = 0;
     public static final double angleI = 0;
     public static final double angleD = 0;
-
-    public static final double shooterP = 0;
-    public static final double shooterI = 0;
-    public static final double shooterD = 0;
   }
   
   public static class visionConstants {

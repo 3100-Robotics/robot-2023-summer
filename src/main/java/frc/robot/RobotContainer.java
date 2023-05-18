@@ -9,10 +9,10 @@ import com.pathplanner.lib.auto.PIDConstants;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.balance;
 import frc.robot.commands.fieldCentricDrive;
 import frc.robot.subsystems.*;
 import org.photonvision.PhotonCamera;
@@ -31,13 +31,13 @@ public class RobotContainer {
   private final PhotonCamera frontCamera = new PhotonCamera("frontCamera");
   private final PhotonCamera backCamera = new PhotonCamera("backCamera");
 
-  public swerveSubsystem drive = new swerveSubsystem();
-  public Shooter shooter = new Shooter(frontCamera, backCamera);
-  public AngleController angleController = new AngleController(frontCamera, backCamera);
-  public LEDs leds = new LEDs();
+  public final swerveSubsystem drive = new swerveSubsystem();
+  public final Shooter shooter = new Shooter(frontCamera, backCamera);
+  public final AngleController angleController = new AngleController(frontCamera, backCamera);
+  public final LEDs leds = new LEDs();
 
-  public CommandXboxController driveController = new CommandXboxController(0);
-  public CommandXboxController coDriveController = new CommandXboxController(1);
+  public final CommandXboxController driveController = new CommandXboxController(0);
+  public final CommandXboxController coDriveController = new CommandXboxController(1);
 
   private final SendableChooser<Command> chooser = new SendableChooser<>();
 
@@ -64,26 +64,62 @@ public class RobotContainer {
             andThen(shooter.runShooterSpeedForTime(-0.5, 1).
                     andThen(angleController.turnToAngle(120))));
     eventMap.put("eject", shooter.runShooterSpeedForTime(0.5, 0.5));
-    eventMap.put("balance", new PrintCommand("I should be balancing"));
+    eventMap.put("balance", new balance(drive));
 
-    Command threePieceBalance = drive.createTrajectory(
-            "3 piece balance",
+    Command threePieceBalanceLeft = drive.createTrajectory(
+            "3 piece balance clean",
             new PathConstraints(8, 4),
             eventMap,
             new PIDConstants(5.0, 0.0, 0.0),
             new PIDConstants(0.5, 0.0, 0.0),
             true);
 
-    Command threePiece = drive.createTrajectory(
-            "3 piece",
+    Command threePieceLeft = drive.createTrajectory(
+            "3 piece clean",
             new PathConstraints(8, 4),
             eventMap,
             new PIDConstants(5.0, 0.0, 0.0),
             new PIDConstants(0.5, 0.0, 0.0),
             true);
 
-    chooser.setDefaultOption("3 piece balance", threePieceBalance);
-    chooser.addOption("3 piece", threePiece);
+    Command threePieceBalanceRight = drive.createTrajectory(
+            "3 piece balance bump",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
+    Command threePieceRight = drive.createTrajectory(
+            "3 piece bump",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
+    Command leftTwoPieceCharge = drive.createTrajectory(
+            "left 2 piece charge",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
+    Command rightTwoPieceCharge = drive.createTrajectory(
+            "right 2 piece charge",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
+    chooser.setDefaultOption("3 piece balance clean", threePieceBalanceLeft);
+    chooser.addOption("3 piece clean", threePieceLeft);
+    chooser.setDefaultOption("3 piece balance bump", threePieceBalanceRight);
+    chooser.addOption("3 piece bump", threePieceRight);
+    chooser.addOption("left 2 piece balance", leftTwoPieceCharge);
+    chooser.addOption("right 2 piece balance", rightTwoPieceCharge);
 
     SmartDashboard.putData("autos", chooser);
   }
