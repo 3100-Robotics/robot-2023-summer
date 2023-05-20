@@ -58,7 +58,7 @@ public class AngleController extends SubsystemBase {
         angleController.setSetpoint(setpointStatic);
     }
 
-    public void setTargetAngleVision(String level) {
+    public void setTargetAngleVision(cuberConstants.angles level) {
         PhotonPipelineResult frontResults = frontCamera.camera.getLatestResult();
         PhotonPipelineResult backResults = backCamera.camera.getLatestResult();
 
@@ -69,7 +69,7 @@ public class AngleController extends SubsystemBase {
 
         int numLevel = 1;
 
-        if (level.equals("mid")) {
+        if (level.equals(cuberConstants.angles.mid)) {
             numLevel = 0;
         }
 
@@ -130,7 +130,7 @@ public class AngleController extends SubsystemBase {
                 andThen(run(this::moveToTargetAngle)).until(this::atAngle);
     }
 
-    public Command turnToAngleVision(String level) {
+    public Command turnToAngleVision(cuberConstants.angles level) {
         return this.
                 runOnce(() -> setTargetAngleVision(level)).
                 andThen(run(this::moveToTargetAngle)).until(this::atAngle);

@@ -6,8 +6,10 @@ package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.auto.PIDConstants;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -15,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.balance;
 import frc.robot.commands.fieldCentricDrive;
 import frc.robot.subsystems.*;
-import org.photonvision.PhotonCamera;
 
 import java.util.HashMap;
 
@@ -29,8 +30,12 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
 
 
-  private final visionWrapper frontCamera = new visionWrapper("frontCamera");
-  private final visionWrapper backCamera = new visionWrapper("backCamera");
+  private final visionWrapper frontCamera = new visionWrapper(
+          "frontCamera",
+          Constants.visionConstants.robotToFrontCam);
+  private final visionWrapper backCamera = new visionWrapper(
+          "backCamera",
+          Constants.visionConstants.robotToBackCam);
 
   public final swerveSubsystem drive = new swerveSubsystem(frontCamera, backCamera);
   public final Shooter shooter = new Shooter(frontCamera, backCamera);
@@ -44,12 +49,16 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+//    CameraServer.startAutomaticCapture();
+
     drive.setDefaultCommand(new fieldCentricDrive(drive, driveController::getLeftX, driveController::getLeftY,
             driveController::getRightX, () -> driveController.rightBumper().getAsBoolean(),false));
 
     angleController.setDefaultCommand(angleController.updateAngle());
 
     shooter.setDefaultCommand(shooter.setShooterWithSpeed(-0.02));
+
+    leds.setDefaultCommand(leds.runOnce(leds::showCubeCounter));
 
     configureAutonomous();
 
@@ -59,8 +68,8 @@ public class RobotContainer {
 
   private void configureAutonomous() {
     HashMap<String, Command> eventMap = new HashMap<>();
-    eventMap.put("shootMid", shooter.runShooterWithVision("mid"));
-    eventMap.put("shootHigh", shooter.runShooterWithVision("high"));
+    eventMap.put("shootMid", shooter.runShooterWithVision(Constants.cuberConstants.angles.mid));
+    eventMap.put("shootHigh", shooter.runShooterWithVision(Constants.cuberConstants.angles.high));
     eventMap.put("collect", angleController.turnToAngle(0).
             andThen(shooter.runShooterSpeedForTime(-0.5, 1).
                     andThen(angleController.turnToAngle(120))));
@@ -73,7 +82,7 @@ public class RobotContainer {
             eventMap,
             new PIDConstants(5.0, 0.0, 0.0),
             new PIDConstants(0.5, 0.0, 0.0),
-            true);
+            false);
 
     Command threePieceLeft = drive.createTrajectory(
             "3 piece clean",
@@ -115,12 +124,21 @@ public class RobotContainer {
             new PIDConstants(0.5, 0.0, 0.0),
             true);
 
+    Command onePieceCharge = drive.createTrajectory(
+            "1 piece charge",
+            new PathConstraints(8, 4),
+            eventMap,
+            new PIDConstants(5.0, 0.0, 0.0),
+            new PIDConstants(0.5, 0.0, 0.0),
+            true);
+
     chooser.setDefaultOption("3 piece balance clean", threePieceBalanceLeft);
     chooser.addOption("3 piece clean", threePieceLeft);
     chooser.setDefaultOption("3 piece balance bump", threePieceBalanceRight);
     chooser.addOption("3 piece bump", threePieceRight);
     chooser.addOption("left 2 piece balance", leftTwoPieceCharge);
     chooser.addOption("right 2 piece balance", rightTwoPieceCharge);
+    chooser.addOption("1 piece balance", onePieceCharge);
 
     SmartDashboard.putData("autos", chooser);
   }
@@ -135,19 +153,23 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    coDriveController.a().onTrue(new InstantCommand(() -> angleController.setTargetAngle(0.0)));
-    coDriveController.b().onTrue(new InstantCommand(() -> angleController.setTargetAngle(120)));
-    coDriveController.x().onTrue(angleController.runOnce(() -> leds.setColorRGB(255, 204, 0)).
-            andThen(angleController.turnToAngleVision("mid")).
-            andThen(() -> leds.setColorRGB(51, 204, 51)).
-            andThen(shooter.runShooterWithVision("mid")));
-    coDriveController.x().onTrue(angleController.runOnce(() -> leds.setColorRGB(255, 204, 0)).
-            andThen(angleController.turnToAngleVision("high")).
-            andThen(() -> leds.setColorRGB(51, 204, 51)).
-            andThen(shooter.runShooterWithVision("high")));
+    coDriveController.a().onTrue(Commands.runOnce(() -> angleController.setTargetAngle(0.0)));
+    coDriveController.b().onTrue(Commands.runOnce(() -> angleController.setTargetAngle(120)));
+    coDriveController.x().onTrue(Commands.sequence(
+            leds.setColorRGBCommand(255, 204, 0),
+            angleController.turnToAngleVision(Constants.cuberConstants.angles.mid),
+            leds.showColorTime(51, 204, 51, 2),
+            shooter.runShooterWithVision(Constants.cuberConstants.angles.mid),
+            leds.incrementCubeCounter()));
+    coDriveController.y().onTrue(Commands.sequence(
+            leds.showColorTime(255, 204, 0, 1),
+            angleController.turnToAngleVision(Constants.cuberConstants.angles.high),
+            leds.showColorTime(51, 204, 51, 2),
+            shooter.runShooterWithVision(Constants.cuberConstants.angles.high),
+            leds.incrementCubeCounter()));
 
     coDriveController.leftBumper().whileTrue(shooter.setShooterWithSpeed(-0.3));
-    coDriveController.rightBumper().whileTrue(shooter.setShooterWithSpeed(0.3));
+    coDriveController.rightBumper().whileTrue(shooter.setShooterWithSpeed(0.3).andThen(leds::incrementCubeCounter));
   }
 
   /**

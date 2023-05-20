@@ -1,7 +1,7 @@
 {
   "location": {
-    "front": 11.041,
-    "left": -11.071
+    "front": 12,
+    "left": -12
   },
   "absoluteEncoderOffset": 0,
   "drive": {
@@ -15,7 +15,7 @@
     "canbus": null
   },
   "encoder": {
-    "type": "throughbore",
+    "type": "attached",
     "id": 0,
     "canbus": null
   },

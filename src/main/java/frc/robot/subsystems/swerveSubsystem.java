@@ -9,15 +9,15 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.driveConstants;
 import frc.robot.visionWrapper;
 import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveKinematics2;
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
+import swervelib.telemetry.SwerveDriveTelemetry;
 
 public class swerveSubsystem extends SubsystemBase {
     File swerveJsonDir = new File(Filesystem.getDeployDirectory(),"swerve");
@@ -41,6 +42,8 @@ public class swerveSubsystem extends SubsystemBase {
    private final PIDController balanceController;
 
    private final visionWrapper frontCamera, backCamera;
+
+    private final Field2d field = new Field2d();
 
     public swerveSubsystem(visionWrapper frontCamera, visionWrapper backCamera) {
 
@@ -54,16 +57,30 @@ public class swerveSubsystem extends SubsystemBase {
         balanceController.setTolerance(0.3, 1);
         balanceController.setSetpoint(0);
 
+        SwerveDriveTelemetry.verbosity = SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
+
+        SmartDashboard.putData("Field", field);
+
         try {
             drive = new SwerveParser(swerveJsonDir).createSwerveDrive();
-        } catch (IOException ignored) {}
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
     @Override
     public void periodic() {
         updateOdometry();
+        field.setRobotPose(drive.swerveDrivePoseEstimator.getEstimatedPosition());
+        SmartDashboard.putNumberArray("2d pos", new double[]{
+                drive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
+                drive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
+                drive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getRadians()});
     }
+
+    @Override
+    public void simulationPeriodic() {}
 
 
     public void updateOdometry() {
@@ -154,6 +171,11 @@ public class swerveSubsystem extends SubsystemBase {
 
     public SwerveController getSwerveController() {
         return drive.swerveController;
+    }
+
+
+    public void lock() {
+        drive.lockPose();
     }
 
 

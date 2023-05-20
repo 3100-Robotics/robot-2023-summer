@@ -38,6 +38,11 @@ public final class Constants {
     public static final double angleP = 0.1;
     public static final double angleI = 0;
     public static final double angleD = 0;
+
+    public enum angles {
+      high,
+      mid,
+    }
   }
   
   public static class visionConstants {
@@ -45,11 +50,18 @@ public final class Constants {
     public static final double[] heightDiffs = {19, 29};
     public static final double g = 32;
 
-    public static final Transform3d robotToCam =
+    public static final Transform3d robotToFrontCam =
             new Transform3d(
                     new Translation3d(0.222, 0.238, 0),
                     new Rotation3d(
                             60, 0,
+                            0)); // Cam mounted facing forward, half a meter forward of center, half a meter up
+
+    public static final Transform3d robotToBackCam =
+            new Transform3d(
+                    new Translation3d(-0.222, 0.238, 0),
+                    new Rotation3d(
+                            -60, 0,
                             0)); // Cam mounted facing forward, half a meter forward of center, half a meter up
   }
 

@@ -3,6 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.swerveSubsystem;
@@ -35,16 +36,20 @@ public class fieldCentricDrive extends CommandBase {
 
     @Override
     public void execute() {
-        ChassisSpeeds wantedSpeeds = drive.getTargetSpeeds(
-                vX.getAsDouble()*(!isSlowMode.getAsBoolean() ? 0.5 : 1),
-                vY.getAsDouble()*(!isSlowMode.getAsBoolean() ? 0.5 : 1),
+        ChassisSpeeds desiredSpeeds = drive.getTargetSpeeds(
+                vX.getAsDouble()*(isSlowMode.getAsBoolean() ? 1 : 0.75),
+                vY.getAsDouble()*(isSlowMode.getAsBoolean() ? -1 : -0.75),
                 new Rotation2d(heading.getAsDouble() * Math.PI));
 
-        Translation2d translation = SwerveController.getTranslation2d(wantedSpeeds);
+        // Limit velocity to prevent tippy
+        Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
         translation = SwerveMath.limitVelocity(translation, drive.getFieldVelocity(), drive.getPose(),
                 Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
                 drive.getSwerveDriveConfiguration());
+        SmartDashboard.putNumber("LimitedTranslation", translation.getX());
+        SmartDashboard.putString("Translation", translation.toString());
 
-        drive.drive(translation, wantedSpeeds.omegaRadiansPerSecond, true, isOpenLoop);
+        // Make the robot move
+        drive.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true, isOpenLoop);
     }
 }

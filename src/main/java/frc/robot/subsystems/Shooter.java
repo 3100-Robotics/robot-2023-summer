@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.CANSparkMax;
@@ -47,6 +48,11 @@ public class Shooter extends SubsystemBase {
 
         this.frontCamera = frontCamera;
         this.backCamera = backCamera;
+    }
+
+    @Override
+    public void periodic() {
+//        SmartDashboard.
     }
 
     // ACTIONS
@@ -99,7 +105,7 @@ public class Shooter extends SubsystemBase {
                 andThen(this::runShooterToSpeed).until(() -> Timer.getFPGATimestamp() - startTime >= time);
     }
 
-    public Command runShooterWithVision(String level) {
+    public Command runShooterWithVision(cuberConstants.angles level) {
         PhotonPipelineResult frontResults = frontCamera.camera.getLatestResult();
         PhotonPipelineResult backResults = backCamera.camera.getLatestResult();
 
@@ -112,7 +118,7 @@ public class Shooter extends SubsystemBase {
 
         int numLevel;
 
-        if (level.equals("mid")) {
+        if (level.equals(cuberConstants.angles.mid)) {
             numLevel = 0;
         }
         else {

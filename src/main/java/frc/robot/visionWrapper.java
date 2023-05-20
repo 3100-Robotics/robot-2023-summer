@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -19,7 +20,7 @@ public class visionWrapper {
 
     public PhotonPoseEstimator poseEstimator;
 
-    public visionWrapper(String cameraName) {
+    public visionWrapper(String cameraName, Transform3d robotToCam) {
         camera = new PhotonCamera(cameraName);
         try {
             // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
@@ -27,7 +28,7 @@ public class visionWrapper {
             // Create pose estimator
             poseEstimator =
                     new PhotonPoseEstimator(
-                            fieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camera, visionConstants.robotToCam);
+                            fieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, camera, robotToCam);
             poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
         } catch (IOException e) {
             // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
