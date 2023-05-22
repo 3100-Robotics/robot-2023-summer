@@ -41,6 +41,8 @@ public class fieldCentricDrive extends CommandBase {
                 vY.getAsDouble()*(isSlowMode.getAsBoolean() ? -1 : -0.75),
                 new Rotation2d(heading.getAsDouble() * Math.PI));
 
+        desiredSpeeds.omegaRadiansPerSecond = heading.getAsDouble() * Math.PI;
+
         // Limit velocity to prevent tippy
         Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
         translation = SwerveMath.limitVelocity(translation, drive.getFieldVelocity(), drive.getPose(),
