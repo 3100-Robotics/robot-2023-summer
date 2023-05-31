@@ -3,7 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.swerveSubsystem;
+import frc.robot.subsystems.Drive;
 import swervelib.SwerveController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
@@ -12,7 +12,7 @@ import java.util.function.DoubleSupplier;
 
 public class drive extends CommandBase {
 
-    private final swerveSubsystem swerve;
+    private final Drive swerve;
     private final DoubleSupplier vX;
     private final DoubleSupplier vY;
     private final DoubleSupplier omega;
@@ -24,7 +24,17 @@ public class drive extends CommandBase {
     private double angle = 0;
     private double lastTime = 0;
 
-    public drive(swerveSubsystem swerve, DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier omega,
+    /**
+     * constructs a command to drive the robot in either robot-centric or field-centric mode
+     * @param swerve the drive subsystem
+     * @param vX the x velocity supplier
+     * @param vY the y velocity supplier
+     * @param omega the rotation supplier
+     * @param driveMode whether it should drive in robot-centric or field-centric
+     * @param isOpenLoop whether it should drive in open loop mode
+     * @param headingCorrection whether it should correct the heading
+     */
+    public drive(Drive swerve, DoubleSupplier vX, DoubleSupplier vY, DoubleSupplier omega,
                  BooleanSupplier driveMode, boolean isOpenLoop, boolean headingCorrection) {
         this.swerve = swerve;
         this.vX = vX;
@@ -50,6 +60,7 @@ public class drive extends CommandBase {
 
     @Override
     public void execute() {
+        // cube teh inputs for more controllability
         double xVelocity = Math.pow(vX.getAsDouble(), 3);
         double yVelocity = Math.pow(vY.getAsDouble(), 3);
         double angVelocity = Math.pow(omega.getAsDouble(), 3);

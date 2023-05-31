@@ -24,11 +24,11 @@ public final class Constants {
     public static final double balanceP = 0.05;
     public static final double balanceI = 0;
     public static final double balanceD = 0;
-  }
 
-  public static final double ROBOT_MASS = 45.35924; // 32lbs * kg per pound
-  public static final Matter CHASSIS = new Matter(new Translation3d(0, 0, Units.inchesToMeters(4)), ROBOT_MASS);
-  public static final double LOOP_TIME = 0.13;
+    public static final double ROBOT_MASS = 45.35924; // 32lbs * kg per pound
+    public static final Matter CHASSIS = new Matter(new Translation3d(0, 0, Units.inchesToMeters(4)), ROBOT_MASS);
+    public static final double LOOP_TIME = 0.13;
+  }
 
   public static class cuberConstants {
     public static final int angleMotorPort = 9;
@@ -55,14 +55,14 @@ public final class Constants {
                     new Translation3d(0.222, 0.238, 0),
                     new Rotation3d(
                             60, 0,
-                            0)); // Cam mounted facing forward, half a meter forward of center, half a meter up
+                            0));
 
     public static final Transform3d robotToBackCam =
             new Transform3d(
                     new Translation3d(-0.222, 0.238, 0),
                     new Rotation3d(
                             -60, 0,
-                            0)); // Cam mounted facing forward, half a meter forward of center, half a meter up
+                            0));
   }
 
   public static class LEDConstants {
