@@ -76,6 +76,7 @@ public class RobotContainer {
     HashMap<String, Command> eventMap = new HashMap<>();
     eventMap.put("shootMid", shooter.runShooterWithVision(Constants.cuberConstants.angles.mid));
     eventMap.put("shootHigh", shooter.runShooterWithVision(Constants.cuberConstants.angles.high));
+    eventMap.put("shootLow", shooter.runShooterWithVision(Constants.cuberConstants.angles.low));
     eventMap.put("collect",
             angleController.turnToAngle(0).
             andThen(shooter.runShooterSpeedForTime(-0.5, 1).
@@ -141,12 +142,14 @@ public class RobotContainer {
     // sequence setting the LED color, get and set the angle, set the LED color again,
     // run the shooter, and add another cube to the counter
     coDriveController.x().onTrue(Commands.sequence(
+            Commands.runOnce(drive::lock),
             leds.setColorRGBCommand(255, 204, 0),
             angleController.turnToAngleVision(Constants.cuberConstants.angles.mid),
             leds.showColorTime(51, 204, 51, 2),
             shooter.runShooterWithVision(Constants.cuberConstants.angles.mid),
             leds.incrementCubeCounter()));
     coDriveController.y().onTrue(Commands.sequence(
+            Commands.runOnce(drive::lock),
             leds.showColorTime(255, 204, 0, 1),
             angleController.turnToAngleVision(Constants.cuberConstants.angles.high),
             leds.showColorTime(51, 204, 51, 2),

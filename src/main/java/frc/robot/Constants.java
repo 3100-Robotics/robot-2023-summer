@@ -40,6 +40,7 @@ public final class Constants {
     public static final double angleD = 0;
 
     public enum angles {
+      low,
       high,
       mid,
     }
@@ -47,7 +48,7 @@ public final class Constants {
   
   public static class visionConstants {
     public static final double maxHeight = 9.5;
-    public static final double[] heightDiffs = {19, 29};
+    public static final double[] heightDiffs = {0, 19, 29};
     public static final double g = 32;
 
     public static final Transform3d robotToFrontCam =

@@ -126,10 +126,13 @@ public class AngleController extends SubsystemBase {
 
         double distance = 0;
 
-        int numLevel = 1;
+        int numLevel = 2;
 
-        if (level.equals(cuberConstants.angles.mid)) {
+        if (level.equals(cuberConstants.angles.low)) {
             numLevel = 0;
+        }
+        else if (level.equals(cuberConstants.angles.mid)) {
+            numLevel = 1;
         }
 
         // if there are results get the distance from them. The front camera is prioritized

@@ -148,11 +148,14 @@ public class Shooter extends SubsystemBase {
 
         int numLevel;
 
-        if (level.equals(cuberConstants.angles.mid)) {
+        if (level.equals(cuberConstants.angles.low)) {
             numLevel = 0;
         }
-        else {
+        else if (level.equals(cuberConstants.angles.mid)){
             numLevel = 1;
+        }
+        else {
+            numLevel = 2;
         }
 
         // check if either of the cameras have targets.
