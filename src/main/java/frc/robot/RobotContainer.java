@@ -90,43 +90,76 @@ public class RobotContainer {
             new PIDConstants(5.0, 0.0, 0.0),
             new PIDConstants(0.5, 0.0, 0.0), true);
 
+    PathConstraints constraints = new PathConstraints(6, 4);
+
     // create the auto commands
+    // left side autos
     Command threePieceBalanceLeft = drive.createTrajectory(
             "3 piece balance clean",
-            new PathConstraints(8, 4));
+            constraints);
 
     Command threePieceLeft = drive.createTrajectory(
             "3 piece clean",
-            new PathConstraints(8, 4));
+            constraints);
+
+    Command fourPieceLeft = drive.createTrajectory(
+            "4 piece clean", constraints);
+
+    Command fivePieceLeft = drive.createTrajectory(
+            "5 piece clean", constraints);
+
+    // right side autos
 
     Command threePieceBalanceRight = drive.createTrajectory(
             "3 piece balance bump",
-            new PathConstraints(8, 4));
+            constraints);
 
     Command threePieceRight = drive.createTrajectory(
             "3 piece bump",
-            new PathConstraints(8, 4));
+            constraints);
+
+    Command fourPieceRight = drive.createTrajectory(
+            "4 piece bump",
+            constraints);
+
+    Command fivePieceRight = drive.createTrajectory(
+            "5 piece bump",
+            constraints);
+
+    //middle autos
 
     Command leftTwoPieceCharge = drive.createTrajectory(
             "left 2 piece charge",
-            new PathConstraints(8, 4));
+            constraints);
 
     Command rightTwoPieceCharge = drive.createTrajectory(
             "right 2 piece charge",
-            new PathConstraints(8, 4));
+            constraints);
 
     Command onePieceCharge = drive.createTrajectory(
             "1 piece charge",
-            new PathConstraints(8, 4));
+            constraints);
+
+    Command threePieceCharge = drive.createTrajectory(
+            "3 piece balance mid",
+            constraints);
 
     // add them to the auto chooser
+    // left side autos
     chooser.setDefaultOption("3 piece balance clean", threePieceBalanceLeft);
     chooser.addOption("3 piece clean", threePieceLeft);
-    chooser.setDefaultOption("3 piece balance bump", threePieceBalanceRight);
+    chooser.addOption("4 piece clean", fourPieceLeft);
+    chooser.addOption("5 piece clean", fivePieceLeft);
+    // right side autos
+    chooser.addOption("3 piece balance bump", threePieceBalanceRight);
     chooser.addOption("3 piece bump", threePieceRight);
-    chooser.addOption("left 2 piece balance", leftTwoPieceCharge);
-    chooser.addOption("right 2 piece balance", rightTwoPieceCharge);
-    chooser.addOption("1 piece balance", onePieceCharge);
+    chooser.addOption("4 piece bump", fourPieceRight);
+    chooser.addOption("5 piece bump", fivePieceRight);
+    // middle autos
+    chooser.addOption("3 piece balance middle", threePieceCharge);
+    chooser.addOption("left 2 piece balance middle", leftTwoPieceCharge);
+    chooser.addOption("right 2 piece balance middle", rightTwoPieceCharge);
+    chooser.addOption("1 piece balance middle", onePieceCharge);
 
     // put the chooser to the dashboard
     SmartDashboard.putData("autos", chooser);

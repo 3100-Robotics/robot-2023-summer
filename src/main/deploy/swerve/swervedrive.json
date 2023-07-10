@@ -8,6 +8,6 @@
   },
   "invertedIMU": false,
   "modules": [
-    "frontleft.json"
+    "backright.json"
   ]
 }
