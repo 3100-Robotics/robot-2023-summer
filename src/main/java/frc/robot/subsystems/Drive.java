@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.driveConstants;
-import frc.robot.visionWrapper;
+import frc.robot.vision.visionWrapper;
 import org.photonvision.EstimatedRobotPose;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
@@ -71,10 +71,11 @@ public class Drive extends SubsystemBase {
 		balanceController.setTolerance(0.3, 1);
 		balanceController.setSetpoint(0);
 
-		SwerveDriveTelemetry.verbosity = SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
-
-        // put the 2d field to the dashboard
+		// put the 2d field to the dashboard
 		SmartDashboard.putData("Field", field);
+
+		// set the swerve telemetry's verbosity
+		SwerveDriveTelemetry.verbosity = SwerveDriveTelemetry.TelemetryVerbosity.HIGH;
 
         // create the drivetrain from the config files
 		try {
@@ -89,13 +90,15 @@ public class Drive extends SubsystemBase {
 	public void periodic() {
         // update the robot pose
 		updateOdometry();
+
         // give the 2d field the updated pose
 		field.setRobotPose(drive.swerveDrivePoseEstimator.getEstimatedPosition());
-        // update the numerical pose for the dashboard
-		SmartDashboard.putNumberArray("2d pos", new double[]{
-				drive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
-				drive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
-				drive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getRadians()});
+
+        // update the numerical pose for the dashboard. Don't need it right now
+//		SmartDashboard.putNumberArray("2d pos", new double[]{
+//				drive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
+//				drive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
+//				drive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getRadians()});
 	}
 
 	public void updateOdometry() {

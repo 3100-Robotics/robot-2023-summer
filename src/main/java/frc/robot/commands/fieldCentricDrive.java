@@ -48,12 +48,12 @@ public class fieldCentricDrive extends CommandBase {
     public void execute() {
         // get the target speeds given the inputs and whether the robot is in slow mode
         ChassisSpeeds desiredSpeeds = drive.getTargetSpeeds(
-                vX.getAsDouble()*(isSlowMode.getAsBoolean() ? 1 : 0.75),
-                vY.getAsDouble()*(isSlowMode.getAsBoolean() ? -1 : -0.75),
+                vX.getAsDouble()*(1),
+                vY.getAsDouble()*(-1),
                 new Rotation2d(heading.getAsDouble() * Math.PI));
 
         // set the rotation speed to the heading input
-        desiredSpeeds.omegaRadiansPerSecond = heading.getAsDouble() * Math.PI;
+//        desiredSpeeds.omegaRadiansPerSecond = heading.getAsDouble() * Math.PI;
 
         // Limit velocity to prevent tippy
         Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);

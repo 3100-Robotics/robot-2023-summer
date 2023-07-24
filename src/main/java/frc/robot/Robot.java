@@ -55,7 +55,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
-    if (DriverStation.isDSAttached() && !hasSetColor) {
+    // set the leds to be red or blue when disabled according to alliance color
+    if (DriverStation.isDSAttached() && !hasSetColor && m_robotContainer.LEDsEnabled) {
       if (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) {
         m_robotContainer.leds.setColorRGB(250, 0, 0);
       }

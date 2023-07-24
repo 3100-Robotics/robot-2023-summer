@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.math.controller.BangBangController;
+import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -12,8 +12,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import frc.robot.Constants;
 import frc.robot.Constants.cuberConstants;
-import frc.robot.visionWrapper;
-import org.photonvision.targeting.PhotonPipelineResult;
+import frc.robot.vision.results;
+import frc.robot.vision.visionWrapper;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
@@ -27,7 +27,7 @@ public class Shooter extends SubsystemBase {
     private final RelativeEncoder leftShooterEncoder;
     private final RelativeEncoder rightShooterEncoder;
 
-    private final BangBangController shooterController;
+    private final SparkMaxPIDController leftShooterController;
 
     private final visionWrapper frontCamera, backCamera;
 
@@ -41,6 +41,27 @@ public class Shooter extends SubsystemBase {
         rightShooter = new CANSparkMax(cuberConstants.rightShooterPort, MotorType.kBrushless);
 
         // motor configuration
+        configureMotors();
+
+        // set the encoders to be the motor's encoders
+        leftShooterEncoder = leftShooter.getEncoder();
+        rightShooterEncoder = rightShooter.getEncoder();
+
+        // set up the pid controller
+        leftShooterController = leftShooter.getPIDController();
+        leftShooterController.setP(cuberConstants.shooterP);
+        leftShooterController.setI(cuberConstants.shooterI);
+        leftShooterController.setD(cuberConstants.shooterD);
+        leftShooterController.setFeedbackDevice(leftShooterEncoder);
+
+        this.frontCamera = frontCamera;
+        this.backCamera = backCamera;
+    }
+
+    /**
+     * configure the motors.
+     */
+    private void configureMotors() {
         rightShooter.follow(leftShooter);
         leftShooter.setIdleMode(IdleMode.kBrake);
         rightShooter.setIdleMode(IdleMode.kBrake);
@@ -48,16 +69,6 @@ public class Shooter extends SubsystemBase {
         rightShooter.setInverted(false);
         leftShooter.setSmartCurrentLimit(50);
         rightShooter.setSmartCurrentLimit(50);
-
-        // set the encoders to be the motor's encoders
-        leftShooterEncoder = leftShooter.getEncoder();
-        rightShooterEncoder = rightShooter.getEncoder();
-
-        shooterController = new BangBangController();
-        shooterController.setTolerance(0.5);
-
-        this.frontCamera = frontCamera;
-        this.backCamera = backCamera;
     }
 
     @Override
@@ -66,6 +77,8 @@ public class Shooter extends SubsystemBase {
         SmartDashboard.putNumberArray("SmartDashboard/shooter shooter speeds", new double[]{
                 leftShooterEncoder.getVelocity(),
                 rightShooterEncoder.getVelocity()});
+        SmartDashboard.putNumber("SmartDashboard/shooter shooter current",
+                (leftShooter.getOutputCurrent()+rightShooter.getOutputCurrent())/2);
     }
 
     // ACTIONS
@@ -74,17 +87,10 @@ public class Shooter extends SubsystemBase {
         leftShooter.stopMotor();
     }
 
-    /**
-     * set the shooter with the velocity given from the bang bang controller
-     */
-    public void runShooterToSpeed() {
-        final double vel = leftShooterEncoder.getVelocity();
-        final double speed = shooterController.calculate(vel);
-        set(speed);
-    }
-
     public void setShooterSpeedSetpoint(double setpoint) {
-        shooterController.setSetpoint(setpoint);
+        leftShooterController.setReference(
+                setpoint/ cuberConstants.shooterGearRatio,
+                CANSparkMax.ControlType.kVelocity);
     }
 
 
@@ -93,18 +99,6 @@ public class Shooter extends SubsystemBase {
      */
     public void set(double speed) {
         leftShooter.set(speed);
-    }
-
-    // GETTERS
-
-    public double getShooterPosition() {
-        return (leftShooterEncoder.getPosition() + rightShooterEncoder.getPosition()) / 2;
-    }
-
-    // STATES
-
-    public boolean atShooterSpeed() {
-        return shooterController.atSetpoint();
     }
 
     // COMMANDS
@@ -125,8 +119,17 @@ public class Shooter extends SubsystemBase {
      * @return the generated command
      */
     public Command runShooterSpeedForTime(double speed, double time) {
-        return this.runOnce(() -> setShooterSpeedSetpoint(speed)).
-                andThen(this::runShooterToSpeed).deadlineWith(Commands.waitSeconds(time));
+        return this.runOnce(() -> setShooterSpeedSetpoint(speed)).deadlineWith(Commands.waitSeconds(time));
+    }
+
+    /**
+     * a command to run the motors until they detect that they have collected a cube
+     * @param speed the speed to run at
+     * @return the generated command
+     */
+    public Command collect(double speed) {
+        return this.run(() -> set(speed)).until(() -> leftShooter.getOutputCurrent()>30&&
+                rightShooter.getOutputCurrent()>30).andThen(this::stopShooter);
     }
 
     /**
@@ -134,10 +137,10 @@ public class Shooter extends SubsystemBase {
      * @param level the shelf level to aim for
      * @return the generated command
      */
-    public Command runShooterWithVision(cuberConstants.angles level) {
+    public Command runShooterWithVision(Constants.visionConstants.heights level) {
         // get the camera results
-        PhotonPipelineResult frontResults = frontCamera.camera.getLatestResult();
-        PhotonPipelineResult backResults = backCamera.camera.getLatestResult();
+        results frontResults = frontCamera.getLatestResult();
+        results backResults = backCamera.getLatestResult();
 
         PhotonTrackedTarget frontBestTarget;
         PhotonTrackedTarget backBestTarget;
@@ -145,18 +148,6 @@ public class Shooter extends SubsystemBase {
         double angle;
 
         double distance = 0;
-
-        int numLevel;
-
-        if (level.equals(cuberConstants.angles.low)) {
-            numLevel = 0;
-        }
-        else if (level.equals(cuberConstants.angles.mid)){
-            numLevel = 1;
-        }
-        else {
-            numLevel = 2;
-        }
 
         // check if either of the cameras have targets.
         // if they do get their best targets. defaults to the front camera
@@ -172,15 +163,17 @@ public class Shooter extends SubsystemBase {
         // calculate the speed to run at
         angle = Math.atan(
                 (2/distance) *
-                        (Constants.visionConstants.heightDiffs[numLevel] + Constants.visionConstants.maxHeight +
+                        (level.getHeightDiff() + Constants.visionConstants.maxHeight +
                                 Math.sqrt(Math.pow(Constants.visionConstants.maxHeight, 2) +
-                                        Constants.visionConstants.heightDiffs[numLevel] *
-                                                Constants.visionConstants.maxHeight)));
+                                        level.getHeightDiff() *
+                                                Constants.visionConstants.maxHeight)))+(Math.PI/2);
 
         // create and return the command
         return runShooterSpeedForTime((Math.sqrt(2* Constants.visionConstants.g*
-                (Constants.visionConstants.heightDiffs[numLevel] +
-                        Constants.visionConstants.maxHeight)))/Math.sin(angle), 1);
+                (level.getHeightDiff() +
+                        Constants.visionConstants.maxHeight)))/Math.sin(angle)
+                        /(cuberConstants.shooterWheelRadius*Math.PI),
+                1);
     }
 }
 
