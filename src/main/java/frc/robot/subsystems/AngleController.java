@@ -35,7 +35,8 @@ public class AngleController extends SubsystemBase {
     // testing out simulating the claw
     private final Mechanism2d mech = new Mechanism2d(10, 11);
     private final MechanismRoot2d root = mech.getRoot("root", 1, 0);
-    private final MechanismLigament2d claw = root.append(new MechanismLigament2d("claw", 9.8, 0));
+    private final MechanismLigament2d claw = root.append(
+            new MechanismLigament2d("claw", 9.8, 0));
 
     /**
      * constructs a new angle controller and gives it two cameras.
@@ -118,7 +119,8 @@ public class AngleController extends SubsystemBase {
 
         double distance = 0;
 
-        // if there are results get the distance from them. The front camera is prioritized
+        // if there are results get the distance from them.
+        // The front camera is prioritized
         if (frontResults.hasTargets()) {
             frontBestTarget = frontResults.getBestTarget();
             distance = frontBestTarget.getBestCameraToTarget().getX();
@@ -131,10 +133,10 @@ public class AngleController extends SubsystemBase {
         // calculate the angle and set it as the setpoint
         setAngleSetpoint((Math.atan(
                 (2/distance) *
-                        (level.getHeightDiff() + Constants.visionConstants.maxHeight +
-                                Math.sqrt(Math.pow(Constants.visionConstants.maxHeight, 2) +
-                                        level.getHeightDiff() *
-                                                Constants.visionConstants.maxHeight)))+(Math.PI/2))/2*Math.PI);
+                (level.getHeightDiff() + Constants.visionConstants.maxHeight +
+                Math.sqrt(Math.pow(Constants.visionConstants.maxHeight, 2) +
+                level.getHeightDiff() *
+                Constants.visionConstants.maxHeight)))+(Math.PI/2))/2*Math.PI);
     }
 
     /**

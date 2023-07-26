@@ -52,7 +52,6 @@
     },
     "windows": {
       "/SmartDashboard/Field": {
-        "image": "C:\\Users\\Larson Learning Haus\\Downloads\\2023-field.png",
         "window": {
           "visible": true
         }

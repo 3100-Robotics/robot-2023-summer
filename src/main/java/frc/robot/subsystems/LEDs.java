@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LEDConstants;
 
 /**
- * this class allows you to control the leds on the robot in multiple different ways
+ * this class allows you to control the leds on the robot in many ways
  */
 public class LEDs extends SubsystemBase {
 

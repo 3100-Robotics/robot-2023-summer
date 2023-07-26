@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.balance;
 import frc.robot.commands.drive;
-import frc.robot.commands.fieldCentricDrive;
 import frc.robot.subsystems.*;
 import frc.robot.Constants.visionConstants.cameraType;
 import frc.robot.vision.visionWrapper;
@@ -21,11 +20,11 @@ import frc.robot.vision.visionWrapper;
 import java.util.HashMap;
 
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based
- * is a "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot} periodic methods (other than the scheduler calls). Instead, the
- * structure of the robot (including subsystems, commands, and trigger mappings)
- * should be declared here.
+ * This class is where the bulk of the robot should be declared. Since
+ * Command-based is a "declarative" paradigm, very little robot logic should
+ * actually be handled in the {@link Robot} periodic methods (other than the
+ * scheduler calls). Instead, the structure of the robot (including subsystems,
+ * commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
 
@@ -52,7 +51,7 @@ public class RobotContainer {
   private final SendableChooser<Command> chooser = new SendableChooser<>();
 
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /** The container for the robot. Contains subsystems, OI devices, and commands.*/
   public RobotContainer() {
     //  define the three cameras
     visionWrapper frontCamera = new visionWrapper(
@@ -61,15 +60,16 @@ public class RobotContainer {
     visionWrapper backCamera = new visionWrapper(
             "backCamera",
             Constants.visionConstants.robotToBackCam, cameraType.photonVision);
-    visionWrapper gpCamera = new visionWrapper("limelight",
-            Constants.visionConstants.robotToLimelight, cameraType.LimeLight);
+
+    SmartDashboard.putBoolean("is field oriented", false);
 
     // define and set the default command of the subsystems if they are enabled
     if (driveEnabled) {
       drive = new Drive(frontCamera, backCamera);
-      drive.setDefaultCommand(new drive(drive, driveController::getLeftX,
-              driveController::getLeftY, driveController::getRightX,
-              () -> SmartDashboard.getBoolean("is field oriented", true),false, true));
+      drive.setDefaultCommand(new drive(drive, driveController::getLeftY,
+              driveController::getLeftX, driveController::getRightX,
+              () -> SmartDashboard.getBoolean("is field oriented", true),
+              false, false));
     }
     if (shooterEnabled) {
       shooter = new Shooter(frontCamera, backCamera);
@@ -209,10 +209,12 @@ public class RobotContainer {
       coDriveController.b().onTrue(Commands.runOnce(() -> angleController.setAngleSetpoint(120)));
     }
 
-    // dynamic angles. These are to aim for high and mid from any distance within the community
+    // dynamic angles. These are to aim for high and mid
+    // from any distance within the community
     if (driveEnabled && angleControllerEnabled && shooterEnabled && LEDsEnabled) {
-      // sequence locking the drivetrain, setting the LED color, get and set the angle, shoot,
-      // update the LED color, and up the number of cubes shot
+      // sequence locking the drivetrain, setting the LED color,
+      // get and set the angle, shoot, update the LED color,
+      // and up the number of cubes shot
       coDriveController.x().onTrue(Commands.sequence(
               Commands.runOnce(drive::lock),
               leds.setColorRGBCommand(255, 204, 0),

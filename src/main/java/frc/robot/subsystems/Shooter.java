@@ -123,7 +123,8 @@ public class Shooter extends SubsystemBase {
     }
 
     /**
-     * a command to run the motors until they detect that they have collected a cube
+     * a command to run the motors until they detect that
+     * they have collected a cube
      * @param speed the speed to run at
      * @return the generated command
      */
@@ -133,7 +134,8 @@ public class Shooter extends SubsystemBase {
     }
 
     /**
-     * create a command to run the shooter at a certain speed given the angle to aim for
+     * create a command to run the shooter at a certain speed
+     * given the angle to aim for
      * @param level the shelf level to aim for
      * @return the generated command
      */
@@ -172,7 +174,7 @@ public class Shooter extends SubsystemBase {
         return runShooterSpeedForTime((Math.sqrt(2* Constants.visionConstants.g*
                 (level.getHeightDiff() +
                         Constants.visionConstants.maxHeight)))/Math.sin(angle)
-                        /(cuberConstants.shooterWheelRadius*Math.PI),
+                        /(cuberConstants.shooterWheelDiameter *Math.PI),
                 1);
     }
 }

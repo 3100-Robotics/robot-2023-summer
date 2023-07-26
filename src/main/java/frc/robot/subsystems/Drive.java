@@ -93,12 +93,6 @@ public class Drive extends SubsystemBase {
 
         // give the 2d field the updated pose
 		field.setRobotPose(drive.swerveDrivePoseEstimator.getEstimatedPosition());
-
-        // update the numerical pose for the dashboard. Don't need it right now
-//		SmartDashboard.putNumberArray("2d pos", new double[]{
-//				drive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
-//				drive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
-//				drive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation().getRadians()});
 	}
 
 	public void updateOdometry() {
@@ -109,7 +103,8 @@ public class Drive extends SubsystemBase {
 		Optional<EstimatedRobotPose> frontResult = frontCamera.getEstimatedGlobalPose(drive.getPose());
 		Optional<EstimatedRobotPose> backResult = backCamera.getEstimatedGlobalPose(drive.getPose());
 
-        // if the results exist (if there are april tags in view) give them to the pose estimator.
+        // if the results exist (if there are april tags in view)
+		// give them to the pose estimator.
 		if (frontResult.isPresent()) {
 			EstimatedRobotPose camPose = frontResult.get();
 			drive.swerveDrivePoseEstimator.addVisionMeasurement(
@@ -219,7 +214,8 @@ public class Drive extends SubsystemBase {
         // cube the translation inputs for more controllability
 		xInput = Math.pow(xInput, 3);
 		yInput = Math.pow(yInput, 3);
-		return drive.swerveController.getTargetSpeeds(xInput, yInput, angle.getRadians(), getHeading().getRadians());
+		return drive.swerveController.getTargetSpeeds(xInput, yInput,
+				angle.getRadians(), getHeading().getRadians());
 	}
 
 
@@ -247,7 +243,8 @@ public class Drive extends SubsystemBase {
 
 
 	/**
-	 * make the swerve drive's wheels go in an x pattern to force the robot to stay in position
+	 * make the swerve drive's wheels go in an x pattern to force
+	 * the robot to stay in position
 	 */
 	public void lock() {
 		drive.lockPose();
@@ -258,10 +255,12 @@ public class Drive extends SubsystemBase {
 	 * @param eventMap the list of all events that occur in any auto
 	 * @param translationPID the pid constants that should be used for translation
 	 * @param rotationPID the pid constants that should be used for rotation
-	 * @param useAllianceColor whether to use the alliance color in creating an auto
+	 * @param useAllianceColor whether to account for the
+	 *                           alliance color while creating an auto
 	 */
 	public void defineAutoBuilder(Map<String, Command> eventMap,
-								  PIDConstants translationPID, PIDConstants rotationPID, boolean useAllianceColor) {
+								  PIDConstants translationPID,
+								  PIDConstants rotationPID, boolean useAllianceColor) {
 		if (autoBuilder == null) {
 			autoBuilder = new SwerveAutoBuilder(
 					drive::getPose,

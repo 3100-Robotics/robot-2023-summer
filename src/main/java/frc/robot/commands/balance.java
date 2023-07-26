@@ -11,6 +11,11 @@ public class balance extends CommandBase {
     double gyroReading, speed;
     boolean useRoll = false;
 
+    /**
+     * this command makes the robot balance in either rotation (with the front/back
+     * on the charge station or with the left/right on the charge station)
+     * @param swerveSubsystem the swerve drive to use
+     */
     public balance(Drive swerveSubsystem) {
         this.drive = swerveSubsystem;
 

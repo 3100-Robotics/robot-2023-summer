@@ -25,7 +25,8 @@ public class drive extends CommandBase {
     private double lastTime = 0;
 
     /**
-     * constructs a command to drive the robot in either robot-centric or field-centric mode
+     * constructs a command to drive the robot in either
+     * robot-centric or field-centric mode
      * @param swerve the drive subsystem
      * @param vX the x velocity supplier
      * @param vY the y velocity supplier
@@ -61,8 +62,8 @@ public class drive extends CommandBase {
     @Override
     public void execute() {
         // cube teh inputs for more controllability
-        double xVelocity = Math.pow(vX.getAsDouble(), 3);
-        double yVelocity = Math.pow(vY.getAsDouble(), 3);
+        double xVelocity = Math.pow(-vX.getAsDouble(), 3);
+        double yVelocity = Math.pow(-vY.getAsDouble(), 3);
         double angVelocity = Math.pow(omega.getAsDouble(), 3);
 
         if (headingCorrection) {

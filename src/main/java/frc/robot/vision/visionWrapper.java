@@ -3,41 +3,37 @@ package frc.robot.vision;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.LimelightHelpers;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import frc.robot.Constants.visionConstants.cameraType;
-import org.photonvision.targeting.PhotonPipelineResult;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.io.IOException;
 import java.util.*;
 
 
 /**
- * This class creates a light wrapper for the {@link PhotonCamera} and {@link PhotonPoseEstimator}.
- * the only function it has is getEstimatedGlobalPose
+ * This class creates a light wrapper for the {@link PhotonCamera} and
+ * {@link PhotonPoseEstimator}.
  */
 public class visionWrapper {
 
     private PhotonCamera photonCamera;
-
-    private String cameraName;
 
     private PhotonPoseEstimator poseEstimator;
 
     private final cameraType type;
 
     /**
-     * constructs a new vision wrapper object using the name of the photonCamera and the position on the robot
+     * constructs a new vision wrapper object using the name of the photonCamera
+     * and the position on the robot
      * @param cameraName the name of the photonCamera
-     * @param robotToCam a {@link Transform3d} from the center of the robot to the position of the photonCamera
+     * @param robotToCam a {@link Transform3d} from the center of the robot to the
+     *                   position of the photonCamera
      */
     public visionWrapper(String cameraName, Transform3d robotToCam, cameraType type) {
 
@@ -53,7 +49,8 @@ public class visionWrapper {
             }
 
             try {
-                // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
+                // Attempt to load the AprilTagFieldLayout that will tell us where
+                // the tags are on the field.
                 AprilTagFieldLayout fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
                 // Create pose estimator
                 poseEstimator =
@@ -61,26 +58,12 @@ public class visionWrapper {
                                 fieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, photonCamera, robotToCam);
                 poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
             } catch (IOException e) {
-                // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
-                // where the tags are.
+                // The AprilTagFieldLayout failed to load. We won't be able to
+                // estimate poses if we don't know where the tags are.
                 DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
                 poseEstimator = null;
             }
         }
-        else {
-            // set up a limelight camera
-            this.cameraName = cameraName;
-            LimelightHelpers.setCameraMode_Processor(cameraName);
-            LimelightHelpers.setLEDMode_ForceOff(cameraName);
-        }
-    }
-
-    /**
-     * get the type of the camera
-     * @return the cameraType of the camera
-     */
-    public cameraType getCameraType() {
-        return type;
     }
 
     /**
@@ -88,16 +71,12 @@ public class visionWrapper {
      * @return the latest results
      */
     public results getLatestResult() {
-        if (type.equals(cameraType.photonVision)) {
-            return new results(photonCamera.getLatestResult(), type);
-        }
-        else {
-            return new results(LimelightHelpers.getLatestResults(cameraName), type);
-        }
+        return new results(photonCamera.getLatestResult(), type);
     }
 
     /**
-     * A function to estimate the global pose of the robot according to the april tags in view of the robot
+     * A function to estimate the global pose of the robot according to the april
+     * tags in view of the robot
      * @param prevEstimatedRobotPose the previous robot pose
      * @return the estimated pose of the robot according to this photonCamera
      */

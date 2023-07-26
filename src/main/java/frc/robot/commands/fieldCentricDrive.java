@@ -11,14 +11,12 @@ import swervelib.SwerveController;
 import swervelib.math.SwerveMath;
 
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 public class fieldCentricDrive extends CommandBase {
     private final Drive drive;
     private final DoubleSupplier vX, vY, heading;
 
-    private final BooleanSupplier isSlowMode;
 
     private final Boolean isOpenLoop;
 
@@ -28,16 +26,14 @@ public class fieldCentricDrive extends CommandBase {
      * @param vX the x velocity supplier
      * @param vY the y velocity supplier
      * @param heading the rotation supplier
-     * @param isSlowMode the slow mode button supplier
      * @param isOpenLoop weather or not it is open loop controlled
      */
     public fieldCentricDrive(Drive drive, DoubleSupplier vX, DoubleSupplier vY,
-                             DoubleSupplier heading, BooleanSupplier isSlowMode, boolean isOpenLoop) {
+                             DoubleSupplier heading, boolean isOpenLoop) {
         this.drive = drive;
         this.vX = vX;
         this.vY =vY;
         this.heading = heading;
-        this.isSlowMode = isSlowMode;
         this.isOpenLoop = isOpenLoop;
 
         // this command requires the drive subsystem

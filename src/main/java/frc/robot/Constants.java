@@ -11,12 +11,13 @@ import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
- * constants. This class should not be used for any other purpose. All constants should be declared
- * globally (i.e. public static). Do not put anything functional in this class.
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean constants. This class should not be used for any other
+ * purpose. All constants should be declared globally (i.e. public static). Do not
+ * put anything functional in this class.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
- * constants are needed, to reduce verbosity.
+ * <p>It is advised to statically import this class (or one of its inner classes)
+ * wherever the constants are needed, to reduce verbosity.
  */
 public final class Constants {
 
@@ -28,7 +29,8 @@ public final class Constants {
     public static final double ROBOT_MASS = 45.35924; // 32lbs * kg per pound
 
     // a matter var for limiting velocity
-    public static final Matter CHASSIS = new Matter(new Translation3d(0, 0, Units.inchesToMeters(4)), ROBOT_MASS);
+    public static final Matter CHASSIS = new Matter(new Translation3d(0, 0,
+            Units.inchesToMeters(4)), ROBOT_MASS);
 
     // loop time to use
     public static final double LOOP_TIME = 0.13;
@@ -48,15 +50,15 @@ public final class Constants {
     public static final double shooterD = 0;
 
     public static final double shooterGearRatio = 25;
-    public static final double shooterWheelRadius = 0.3;
+    public static final double shooterWheelDiameter = 0.3;
   }
   
   public static class visionConstants {
     // the height above the aim point for the top of the arc to be
     public static final double maxHeight = 9.5;
 
-    // this enum contains 3 different levels to indicate what shelf we are aiming for
-    // as well as an offset for shooting for each shelf
+    // this enum contains 3 different levels to indicate what shelf we are aiming
+    // for as well as an offset for shooting for each shelf
     public enum heights {
       low (1) {
         @Override
