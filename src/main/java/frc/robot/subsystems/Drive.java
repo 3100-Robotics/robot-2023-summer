@@ -4,6 +4,7 @@ import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,10 +14,13 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.driveConstants;
+import frc.robot.vision.results;
 import frc.robot.vision.visionWrapper;
 import org.photonvision.EstimatedRobotPose;
+import org.photonvision.targeting.PhotonTrackedTarget;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveKinematics2;
@@ -239,6 +243,30 @@ public class Drive extends SubsystemBase {
      */
 	public SwerveController getSwerveController() {
 		return drive.swerveController;
+	}
+
+
+	public Command lineUpWithTag() {
+		// get the camera results
+		results frontResults = frontCamera.getLatestResult();
+		results backResults = backCamera.getLatestResult();
+
+		PhotonTrackedTarget frontBestTarget;
+		PhotonTrackedTarget backBestTarget;
+
+		// check if either of the cameras have targets.
+		// if they do get their best targets. defaults to the front camera
+		if (frontResults.hasTargets()) {
+			frontBestTarget = frontResults.getBestTarget();
+			return this.run(() -> drive(
+				new Translation2d(0, 0), 15, false, false));
+		}
+		else if (backResults.hasTargets()) {
+			backBestTarget = backResults.getBestTarget();
+			return this.run(() -> drive(
+				new Translation2d(0, 0), 15, false, false));
+		}
+		return Commands.none();
 	}
 
 

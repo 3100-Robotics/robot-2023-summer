@@ -63,12 +63,14 @@ public class Shooter extends SubsystemBase {
      */
     private void configureMotors() {
         rightShooter.follow(leftShooter);
-        leftShooter.setIdleMode(IdleMode.kBrake);
-        rightShooter.setIdleMode(IdleMode.kBrake);
         leftShooter.setInverted(false);
         rightShooter.setInverted(false);
+        leftShooter.setIdleMode(IdleMode.kBrake);
+        rightShooter.setIdleMode(IdleMode.kBrake);
         leftShooter.setSmartCurrentLimit(50);
         rightShooter.setSmartCurrentLimit(50);
+        rightShooter.burnFlash();
+        leftShooter.burnFlash();
     }
 
     @Override

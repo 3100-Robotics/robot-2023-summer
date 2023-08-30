@@ -4,6 +4,7 @@ package frc.robot.subsystems;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -47,12 +48,13 @@ public class AngleController extends SubsystemBase {
         angleMotor = new CANSparkMax(cuberConstants.angleMotorPort, MotorType.kBrushless);
 
         // configure the motor
-        angleMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         angleMotor.setInverted(false);
+        angleMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         angleMotor.setSmartCurrentLimit(50);
         // to enable when I have the correct number of rotations
 //        angleMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 0);
 //        angleMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, 0.3388F);
+        angleMotor.burnFlash();
 
         // set the encoder to be the connected absolute encoder
         angleEncoder = angleMotor.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);

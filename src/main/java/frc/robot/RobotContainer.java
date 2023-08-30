@@ -70,6 +70,10 @@ public class RobotContainer {
               driveController::getLeftX, driveController::getRightX,
               () -> SmartDashboard.getBoolean("is field oriented", true),
               false, false));
+//       drive.setDefaultCommand(new drive(drive, () -> 0.0,
+//               () -> 0.0, () -> 0.0,
+//               () -> SmartDashboard.getBoolean("is field oriented", true),
+//               false, true));
     }
     if (shooterEnabled) {
       shooter = new Shooter(frontCamera, backCamera);
@@ -216,6 +220,7 @@ public class RobotContainer {
       // get and set the angle, shoot, update the LED color,
       // and up the number of cubes shot
       coDriveController.x().onTrue(Commands.sequence(
+//              drive.lineUpWithTag(),
               Commands.runOnce(drive::lock),
               leds.setColorRGBCommand(255, 204, 0),
               angleController.turnToAngleVision(Constants.visionConstants.heights.mid),
@@ -223,6 +228,7 @@ public class RobotContainer {
               leds.showColorTime(51, 204, 51, 2),
               leds.incrementCubeCounter()));
       coDriveController.y().onTrue(Commands.sequence(
+//              drive.lineUpWithTag(),
               Commands.runOnce(drive::lock),
               leds.setColorRGBCommand(255, 204, 0),
               angleController.turnToAngleVision(Constants.visionConstants.heights.high),
