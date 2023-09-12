@@ -4,13 +4,13 @@
   "imu": {
     "type": "navx",
     "id": 0,
-    "canbus": null
+    "canbus": "null"
   },
-  "invertedIMU": false,
+  "invertedIMU": true,
   "modules": [
-    "backleft.json",
-    "backright.json",
     "frontleft.json",
-    "frontright.json"
+    "frontright.json",
+    "backleft.json",
+    "backright.json"
   ]
 }
