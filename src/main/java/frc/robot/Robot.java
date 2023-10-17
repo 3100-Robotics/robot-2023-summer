@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -21,6 +22,7 @@ public class Robot extends TimedRobot {
   private RobotContainer m_robotContainer;
 
   private Boolean hasSetColor = false;
+  private Boolean lastGreenState = false;
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -31,6 +33,7 @@ public class Robot extends TimedRobot {
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    SmartDashboard.putBoolean("leds green", false);
   }
 
   /**
@@ -57,16 +60,23 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
+//    hasSetColor = (lastGreenState == SmartDashboard.getBoolean("leds green", false));
+
+    lastGreenState = SmartDashboard.getBoolean("leds green", false);
+
+    m_robotContainer.leds.setColorRGB(0, 150, 0);
+
     // set the leds to be red or blue when disabled according to alliance color
-    if (DriverStation.isDSAttached() && !hasSetColor && m_robotContainer.LEDsEnabled) {
-      if (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) {
-        m_robotContainer.leds.setColorRGB(250, 0, 0);
-      }
-      else {
-        m_robotContainer.leds.setColorRGB(0, 0, 250);
-      }
-      hasSetColor = true;
-    }
+//    if (DriverStation.isDSAttached() && m_robotContainer.LEDsEnabled && !hasSetColor && !lastGreenState) {
+//      if (SmartDashboard.getBoolean("leds green", false)) {
+//        m_robotContainer.leds.setColorRGB(0, 250, 0);
+//      } else if (DriverStation.getAlliance().equals(DriverStation.Alliance.Red)) {
+//        m_robotContainer.leds.setColorRGB(250, 0, 0);
+//      } else {
+//        m_robotContainer.leds.setColorRGB(0, 0, 250);
+//      }
+//      hasSetColor = true;
+//    }
   }
 
   /** This autonomous runs the autonomous command selected by your

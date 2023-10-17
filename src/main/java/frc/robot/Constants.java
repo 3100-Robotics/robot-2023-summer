@@ -41,11 +41,11 @@ public final class Constants {
     public static final int leftShooterPort = 10;
     public static final int rightShooterPort = 11;
 
-    public static final double angleP = 0.001;
-    public static final double angleI = 0;
-    public static final double angleD = 0;
+    public static final double angleP = 0.8;
+    public static final double angleI = 0.1;
+    public static final double angleD = 0.1;
 
-    public static final double shooterP = 0.001;
+    public static final double shooterP = 0.1;
     public static final double shooterI = 0;
     public static final double shooterD = 0;
 
@@ -90,12 +90,6 @@ public final class Constants {
       }
     }
 
-    // the type of camera used
-    public enum cameraType {
-      photonVision,
-      LimeLight
-    }
-
     // gravity to use
     public static final double g = 32;
 
@@ -126,6 +120,6 @@ public final class Constants {
     public static final int PWMPort = 0;
 
     // number of LEDs
-    public static final int length = 60;
+    public static final int length = 33;
   }
 }

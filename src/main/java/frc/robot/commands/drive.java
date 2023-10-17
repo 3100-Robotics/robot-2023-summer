@@ -1,18 +1,13 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+
 import frc.robot.subsystems.Drive;
-import swervelib.SwerveController;
-import swervelib.math.SwerveMath;
 
 /**
  * An example command that uses an example subsystem.
@@ -40,14 +35,14 @@ public class drive extends CommandBase
    * @param heading DoubleSupplier that supplies the robot's heading angle.
    */
   public drive(Drive swerve, DoubleSupplier vX, DoubleSupplier vY,
-               DoubleSupplier heading, BooleanSupplier isfieldoriented, boolean isOpenLoop)
+               DoubleSupplier heading, BooleanSupplier isFieldOriented, boolean isOpenLoop)
   {
     this.swerve = swerve;
     this.vX = vX;
     this.vY = vY;
     this.heading = heading;
     this.isOpenLoop = isOpenLoop;
-    this.isFieldOriented = isfieldoriented;
+    this.isFieldOriented = isFieldOriented;
 
     addRequirements(swerve);
   }
@@ -62,21 +57,11 @@ public class drive extends CommandBase
   public void execute()
   {
 
-    // Get the desired chassis speeds based on a 2 joystick module.
-
-    ChassisSpeeds desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(),
-            new Rotation2d(heading.getAsDouble() * Math.PI));
-
-    // Limit velocity to prevent tippy
-    Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
-    translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
-            Constants.driveConstants.LOOP_TIME, Constants.driveConstants.ROBOT_MASS, List.of(Constants.driveConstants.CHASSIS),
-            swerve.getSwerveDriveConfiguration());
-    SmartDashboard.putNumber("LimitedTranslation", translation.getX());
-    SmartDashboard.putString("Translation", translation.toString());
-
-    // Make the robot move
-    swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, isFieldOriented.getAsBoolean(), isOpenLoop);
+    swerve.drive(new Translation2d(
+            MathUtil.applyDeadband(vX.getAsDouble(), 0.04) * swerve.getSwerveController().config.maxSpeed,
+            MathUtil.applyDeadband(vY.getAsDouble(), 0.04)* swerve.getSwerveController().config.maxSpeed),
+            MathUtil.applyDeadband(heading.getAsDouble(), 0.04) * swerve.getSwerveController().config.maxAngularVelocity,
+            isFieldOriented.getAsBoolean(), isOpenLoop);
 
   }
 

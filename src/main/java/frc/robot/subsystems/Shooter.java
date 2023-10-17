@@ -4,6 +4,7 @@ package frc.robot.subsystems;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -12,8 +13,10 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import frc.robot.Constants;
 import frc.robot.Constants.cuberConstants;
-import frc.robot.vision.results;
 import frc.robot.vision.visionWrapper;
+import edu.wpi.first.math.filter.LinearFilter;
+
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
@@ -30,6 +33,10 @@ public class Shooter extends SubsystemBase {
     private final SparkMaxPIDController leftShooterController;
 
     private final visionWrapper frontCamera, backCamera;
+
+    private final LinearFilter currentFilter = LinearFilter.movingAverage(30);
+
+    public double shooterSpeed = 0.7;
 
     /**
      * constructs a new shooter that has access to the given cameras
@@ -62,13 +69,13 @@ public class Shooter extends SubsystemBase {
      * configure the motors.
      */
     private void configureMotors() {
-        rightShooter.follow(leftShooter);
-        leftShooter.setInverted(false);
-        rightShooter.setInverted(false);
+        rightShooter.follow(leftShooter, true);
+        leftShooter.setInverted(true);
+//        rightShooter.setInverted(false);
         leftShooter.setIdleMode(IdleMode.kBrake);
         rightShooter.setIdleMode(IdleMode.kBrake);
-        leftShooter.setSmartCurrentLimit(50);
-        rightShooter.setSmartCurrentLimit(50);
+        leftShooter.setSmartCurrentLimit(40);
+        rightShooter.setSmartCurrentLimit(40);
         rightShooter.burnFlash();
         leftShooter.burnFlash();
     }
@@ -76,10 +83,10 @@ public class Shooter extends SubsystemBase {
     @Override
     public void periodic() {
         // dashboard debugging values
-        SmartDashboard.putNumberArray("SmartDashboard/shooter shooter speeds", new double[]{
+        SmartDashboard.putNumberArray("shooter/shooter speeds", new double[]{
                 leftShooterEncoder.getVelocity(),
                 rightShooterEncoder.getVelocity()});
-        SmartDashboard.putNumber("SmartDashboard/shooter shooter current",
+        SmartDashboard.putNumber("shooter/shooter current",
                 (leftShooter.getOutputCurrent()+rightShooter.getOutputCurrent())/2);
     }
 
@@ -121,7 +128,7 @@ public class Shooter extends SubsystemBase {
      * @return the generated command
      */
     public Command runShooterSpeedForTime(double speed, double time) {
-        return this.runOnce(() -> setShooterSpeedSetpoint(speed)).deadlineWith(Commands.waitSeconds(time));
+        return Commands.print("thing is running").andThen(this.run(() -> set(speed)).withTimeout(time));
     }
 
     /**
@@ -131,8 +138,21 @@ public class Shooter extends SubsystemBase {
      * @return the generated command
      */
     public Command collect(double speed) {
-        return this.run(() -> set(speed)).until(() -> leftShooter.getOutputCurrent()>30&&
-                rightShooter.getOutputCurrent()>30).andThen(this::stopShooter);
+        return Commands.sequence(setShooterWithSpeed(speed).
+                        until(() -> currentFilter.calculate(leftShooter.getOutputCurrent()) > 20),
+        stopShooterCommand(), Commands.runOnce(currentFilter::reset));
+    }
+
+    public Command shootCommand() {
+        return this.run(() -> set(shooterSpeed));
+    }
+
+    public void setSpeed(double speed) {
+        shooterSpeed = speed;
+    }
+
+    public Command dumbCollect(double speed) {
+        return setShooterWithSpeed(speed);
     }
 
     /**
@@ -143,8 +163,8 @@ public class Shooter extends SubsystemBase {
      */
     public Command runShooterWithVision(Constants.visionConstants.heights level) {
         // get the camera results
-        results frontResults = frontCamera.getLatestResult();
-        results backResults = backCamera.getLatestResult();
+        PhotonPipelineResult frontResults = frontCamera.getLatestResult();
+        PhotonPipelineResult backResults = backCamera.getLatestResult();
 
         PhotonTrackedTarget frontBestTarget;
         PhotonTrackedTarget backBestTarget;

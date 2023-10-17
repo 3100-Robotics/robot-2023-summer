@@ -4,7 +4,6 @@ import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.auto.PIDConstants;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,9 +17,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.driveConstants;
-import frc.robot.vision.results;
 import frc.robot.vision.visionWrapper;
 import org.photonvision.EstimatedRobotPose;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
@@ -131,6 +130,14 @@ public class Drive extends SubsystemBase {
      */
 	public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
 		drive.drive(translation, rotation, fieldRelative, isOpenLoop);
+	}
+
+	public void setChassisSpeeds(ChassisSpeeds speeds) {
+		drive.setChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(
+				speeds.vxMetersPerSecond,
+				speeds.vyMetersPerSecond,
+				speeds.omegaRadiansPerSecond,
+				drive.getYaw()));
 	}
 
     /**
@@ -248,8 +255,8 @@ public class Drive extends SubsystemBase {
 
 	public Command lineUpWithTag() {
 		// get the camera results
-		results frontResults = frontCamera.getLatestResult();
-		results backResults = backCamera.getLatestResult();
+		PhotonPipelineResult frontResults = frontCamera.getLatestResult();
+		PhotonPipelineResult backResults = backCamera.getLatestResult();
 
 		PhotonTrackedTarget frontBestTarget;
 		PhotonTrackedTarget backBestTarget;
@@ -259,12 +266,12 @@ public class Drive extends SubsystemBase {
 		if (frontResults.hasTargets()) {
 			frontBestTarget = frontResults.getBestTarget();
 			return this.run(() -> drive(
-				new Translation2d(0, 0), 15, false, false));
+				new Translation2d(0, 0), Math.copySign(10, frontBestTarget.getYaw()), false, false));
 		}
 		else if (backResults.hasTargets()) {
 			backBestTarget = backResults.getBestTarget();
 			return this.run(() -> drive(
-				new Translation2d(0, 0), 15, false, false));
+				new Translation2d(0, 0), Math.copySign(10, -backBestTarget.getYaw()), false, false));
 		}
 		return Commands.none();
 	}
@@ -295,7 +302,7 @@ public class Drive extends SubsystemBase {
 					drive::resetOdometry,
 					translationPID,
 					rotationPID,
-					drive::setChassisSpeeds,
+					this::setChassisSpeeds,
 					eventMap,
 					useAllianceColor,
 					this);

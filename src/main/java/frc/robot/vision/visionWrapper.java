@@ -10,7 +10,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
-import frc.robot.Constants.visionConstants.cameraType;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,8 +26,6 @@ public class visionWrapper {
 
     private PhotonPoseEstimator poseEstimator;
 
-    private final cameraType type;
-
     /**
      * constructs a new vision wrapper object using the name of the photonCamera
      * and the position on the robot
@@ -35,34 +33,30 @@ public class visionWrapper {
      * @param robotToCam a {@link Transform3d} from the center of the robot to the
      *                   position of the photonCamera
      */
-    public visionWrapper(String cameraName, Transform3d robotToCam, cameraType type) {
+    public visionWrapper(String cameraName, Transform3d robotToCam) {
+        // set up a photon vision camera
+        photonCamera = new PhotonCamera(cameraName);
+        photonCamera.setDriverMode(true);
 
-        this.type = type;
+        // if it is a simulation, disable some error throwing
+        if (RobotBase.isSimulation()) {
+            PhotonCamera.setVersionCheckEnabled(false);
+        }
 
-        if (type.equals(cameraType.photonVision)) {
-            // set up a photon vision camera
-            photonCamera = new PhotonCamera(cameraName);
-
-            // if it is a simulation, disable some error throwing
-            if (RobotBase.isSimulation()) {
-                PhotonCamera.setVersionCheckEnabled(false);
-            }
-
-            try {
-                // Attempt to load the AprilTagFieldLayout that will tell us where
-                // the tags are on the field.
-                AprilTagFieldLayout fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
-                // Create pose estimator
-                poseEstimator =
-                        new PhotonPoseEstimator(
-                                fieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, photonCamera, robotToCam);
-                poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
-            } catch (IOException e) {
-                // The AprilTagFieldLayout failed to load. We won't be able to
-                // estimate poses if we don't know where the tags are.
-                DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
-                poseEstimator = null;
-            }
+        try {
+            // Attempt to load the AprilTagFieldLayout that will tell us where
+            // the tags are on the field.
+            AprilTagFieldLayout fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
+            // Create pose estimator
+            poseEstimator =
+                    new PhotonPoseEstimator(
+                            fieldLayout, PhotonPoseEstimator.PoseStrategy.MULTI_TAG_PNP, photonCamera, robotToCam);
+            poseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+        } catch (IOException e) {
+            // The AprilTagFieldLayout failed to load. We won't be able to
+            // estimate poses if we don't know where the tags are.
+            DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
+            poseEstimator = null;
         }
     }
 
@@ -70,8 +64,8 @@ public class visionWrapper {
      * get the latest results from the camera
      * @return the latest results
      */
-    public results getLatestResult() {
-        return new results(photonCamera.getLatestResult(), type);
+    public PhotonPipelineResult getLatestResult() {
+        return photonCamera.getLatestResult();
     }
 
     /**

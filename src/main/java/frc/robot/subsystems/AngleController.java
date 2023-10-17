@@ -3,8 +3,8 @@ package frc.robot.subsystems;
 
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -15,8 +15,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.visionConstants;
 import frc.robot.Constants.cuberConstants;
-import frc.robot.vision.results;
 import frc.robot.vision.visionWrapper;
+
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import java.util.function.DoubleSupplier;
@@ -29,7 +30,7 @@ public class AngleController extends SubsystemBase {
 
     private final AbsoluteEncoder angleEncoder;
 
-    private final SparkMaxPIDController angleController;
+    private final PIDController angleController;
 
     private final visionWrapper frontCamera, backCamera;
 
@@ -38,6 +39,8 @@ public class AngleController extends SubsystemBase {
     private final MechanismRoot2d root = mech.getRoot("root", 1, 0);
     private final MechanismLigament2d claw = root.append(
             new MechanismLigament2d("claw", 9.8, 0));
+
+    double setpoint = 0;
 
     /**
      * constructs a new angle controller and gives it two cameras.
@@ -50,24 +53,26 @@ public class AngleController extends SubsystemBase {
         // configure the motor
         angleMotor.setInverted(false);
         angleMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        angleMotor.setSmartCurrentLimit(50);
+        angleMotor.setSmartCurrentLimit(25);
         // to enable when I have the correct number of rotations
-//        angleMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, 0);
-//        angleMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, 0.3388F);
+        angleMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, 0);
+        angleMotor.setSoftLimit(CANSparkMax.SoftLimitDirection.kForward, (float)0.35);
+        angleMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, false);
+        angleMotor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, false);
         angleMotor.burnFlash();
 
         // set the encoder to be the connected absolute encoder
         angleEncoder = angleMotor.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
 
         // set up the pid controller
-        angleController = angleMotor.getPIDController();
+        angleController = new PIDController(cuberConstants.angleP, cuberConstants.angleI, cuberConstants.angleD);
         angleController.setP(cuberConstants.angleP);
         angleController.setI(cuberConstants.angleI);
         angleController.setD(cuberConstants.angleD);
-        angleController.setFeedbackDevice(angleEncoder);
 
-        // define the zero offset TODO: get the correct offset
-        angleEncoder.setZeroOffset(0);
+        // define the zero offset
+        angleEncoder.setInverted(true);
+        angleEncoder.setZeroOffset(0.9376072);
 
 
         this.frontCamera = frontCamera;
@@ -83,7 +88,10 @@ public class AngleController extends SubsystemBase {
     }
 
     @Override
-    public void periodic() {}
+    public void periodic() {
+        SmartDashboard.putNumber("claw/angle setpoint", setpoint);
+//        angleMotor.set(angleController.calculate(angleEncoder.getPosition()));
+    }
 
     @Override
     public void simulationPeriodic() {
@@ -104,7 +112,9 @@ public class AngleController extends SubsystemBase {
      * @param setpoint the wanted setpoint
      */
     public void setAngleSetpoint(double setpoint) {
-        angleController.setReference(setpoint, CANSparkMax.ControlType.kPosition);
+        this.setpoint = setpoint;
+        System.out.println("setting setpoint");
+        angleController.setSetpoint(setpoint);
     }
 
     /**
@@ -113,8 +123,8 @@ public class AngleController extends SubsystemBase {
      */
     public void setTargetAngleVision(visionConstants.heights level) {
         // get the latest results
-        results frontResults = frontCamera.getLatestResult();
-        results backResults = backCamera.getLatestResult();
+        PhotonPipelineResult frontResults = frontCamera.getLatestResult();
+        PhotonPipelineResult backResults = backCamera.getLatestResult();
 
         PhotonTrackedTarget frontBestTarget;
         PhotonTrackedTarget backBestTarget;
@@ -153,6 +163,10 @@ public class AngleController extends SubsystemBase {
 
     public double getAngle() {
         return angleEncoder.getPosition();
+    }
+
+    public double getSetpoint() {
+        return setpoint;
     }
 
     // COMMANDS
@@ -200,7 +214,7 @@ public class AngleController extends SubsystemBase {
      * @return the generated command
      */
     public Command runWithJoysticks(DoubleSupplier speed) {
-        return this.run(() -> this.setAngleMotor(speed.getAsDouble()));
+        return this.run(() -> this.setAngleMotor(-0.4*speed.getAsDouble()));
     }
 }
 
